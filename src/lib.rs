@@ -2,6 +2,7 @@ extern crate winit;
 extern crate wgpu;
 extern crate futures;
 extern crate shaderc;
+extern crate bytemuck;
 
 mod tut;
 

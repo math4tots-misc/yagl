@@ -1,4 +1,5 @@
 mod state;
+mod vert;
 use crate::futures::executor::block_on;
 use crate::winit::{
     event::{
@@ -17,6 +18,9 @@ use crate::winit::{
     },
 };
 use state::State;
+use vert::Vertex;
+use vert::VERTICES;
+use vert::INDICES;
 
 pub fn main() {
     let event_loop = EventLoop::new();

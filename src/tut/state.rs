@@ -1,4 +1,5 @@
 use crate::wgpu;
+use crate::bytemuck;
 use crate::shaderc;
 use crate::winit::{
     event::{
@@ -8,6 +9,9 @@ use crate::winit::{
         Window,
     },
 };
+use super::VERTICES;
+use super::INDICES;
+use super::Vertex;
 
 pub(super) struct State {
     pub(super) surface: wgpu::Surface,
@@ -21,7 +25,13 @@ pub(super) struct State {
     pub(super) swap_chain: wgpu::SwapChain,
 
     pub(super) render_pipeline: wgpu::RenderPipeline,
+    pub(super) vertex_buffer: wgpu::Buffer,
+    pub(super) index_buffer: wgpu::Buffer,
 
+    #[allow(dead_code)]
+    pub(super) num_vertices: u32,
+
+    pub(super) num_indices: u32,
     pub(super) size: winit::dpi::PhysicalSize<u32>,
 }
 
@@ -86,7 +96,9 @@ impl State {
             depth_stencil_state: None,
             vertex_state: wgpu::VertexStateDescriptor {
                 index_format: wgpu::IndexFormat::Uint16,
-                vertex_buffers: &[],
+                vertex_buffers: &[
+                    Vertex::desc(),
+                ],
             },
             sample_count: 1,
             sample_mask: !0,
@@ -96,7 +108,23 @@ impl State {
         render_pipeline
     }
 
+    fn new_vertex_buffer(device: &wgpu::Device) -> wgpu::Buffer {
+        device.create_buffer_with_data(
+            bytemuck::cast_slice(VERTICES),
+            wgpu::BufferUsage::VERTEX,
+        )
+    }
+
+    fn new_index_buffer(device: &wgpu::Device) -> wgpu::Buffer {
+        device.create_buffer_with_data(
+            bytemuck::cast_slice(INDICES),
+            wgpu::BufferUsage::INDEX,
+        )
+    }
+
     pub(super) async fn new(window: &Window) -> Self {
+        let num_vertices = VERTICES.len() as u32;
+        let num_indices = INDICES.len() as u32;
         let size = window.inner_size();
         let surface = wgpu::Surface::create(window);
         let adapter = wgpu::Adapter::request(
@@ -122,6 +150,8 @@ impl State {
         let swap_chain = device.create_swap_chain(&surface, &sc_desc);
 
         let render_pipeline = Self::compile_shaders(&device, &sc_desc);
+        let vertex_buffer = Self::new_vertex_buffer(&device);
+        let index_buffer = Self::new_index_buffer(&device);
         Self {
             surface,
             adapter,
@@ -130,6 +160,10 @@ impl State {
             sc_desc,
             swap_chain,
             render_pipeline,
+            vertex_buffer,
+            index_buffer,
+            num_vertices,
+            num_indices,
             size,
         }
     }
@@ -174,7 +208,9 @@ impl State {
                 depth_stencil_attachment: None,
             });
             render_pass.set_pipeline(&self.render_pipeline);
-            render_pass.draw(0..3, 0..1);
+            render_pass.set_vertex_buffer(0, &self.vertex_buffer, 0, 0);
+            render_pass.set_index_buffer(&self.index_buffer, 0, 0);
+            render_pass.draw_indexed(0..self.num_indices, 0, 0..1);
         }
         self.queue.submit(&[
             encoder.finish(),
