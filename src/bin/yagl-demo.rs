@@ -1,5 +1,5 @@
 extern crate yagl;
 
 fn main() {
-    yagl::main();
+    yagl::s2d_main();
 }
