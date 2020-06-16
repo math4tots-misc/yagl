@@ -12,11 +12,11 @@ use crate::winit::{
 use super::VERTICES;
 use super::INDICES;
 use super::Vertex;
+use super::Texture;
 
+#[allow(dead_code)]
 pub(super) struct State {
     pub(super) surface: wgpu::Surface,
-
-    #[allow(dead_code)]
     pub(super) adapter: wgpu::Adapter,
 
     pub(super) device: wgpu::Device,
@@ -24,19 +24,23 @@ pub(super) struct State {
     pub(super) sc_desc: wgpu::SwapChainDescriptor,
     pub(super) swap_chain: wgpu::SwapChain,
 
+    pub(super) diffuse_texture: Texture,
+    pub(super) diffuse_bind_group: wgpu::BindGroup,
+
     pub(super) render_pipeline: wgpu::RenderPipeline,
     pub(super) vertex_buffer: wgpu::Buffer,
     pub(super) index_buffer: wgpu::Buffer,
-
-    #[allow(dead_code)]
     pub(super) num_vertices: u32,
-
     pub(super) num_indices: u32,
     pub(super) size: winit::dpi::PhysicalSize<u32>,
 }
 
 impl State {
-    fn compile_shaders(device: &wgpu::Device, sc_desc: &wgpu::SwapChainDescriptor) -> wgpu::RenderPipeline {
+    fn compile_shaders(
+        device: &wgpu::Device,
+        sc_desc: &wgpu::SwapChainDescriptor,
+        texture_bind_group_layout: &wgpu::BindGroupLayout,
+    ) -> wgpu::RenderPipeline {
         let vs_src = include_str!("shader.vert");
         let fs_src = include_str!("shader.frag");
 
@@ -63,7 +67,7 @@ impl State {
 
         let render_pipeline_layout = device.create_pipeline_layout(
             &wgpu::PipelineLayoutDescriptor {
-                bind_group_layouts: &[],
+                bind_group_layouts: &[texture_bind_group_layout],
             }
         );
 
@@ -122,6 +126,59 @@ impl State {
         )
     }
 
+    fn load_texture(device: &wgpu::Device, queue: &mut wgpu::Queue) -> (
+        Texture,
+        wgpu::BindGroup,
+        wgpu::BindGroupLayout,
+    ) {
+        let diffuse_bytes = include_bytes!("happy-tree.png");
+        let (diffuse_texture, cmd_buffer) = Texture::from_bytes(device, diffuse_bytes).unwrap();
+        queue.submit(&[cmd_buffer]);
+
+        let texture_bind_group_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+            bindings: &[
+                wgpu::BindGroupLayoutEntry {
+                    binding: 0,
+                    visibility: wgpu::ShaderStage::FRAGMENT,
+                    ty: wgpu::BindingType::SampledTexture {
+                        multisampled: false,
+                        dimension: wgpu::TextureViewDimension::D2,
+                        component_type: wgpu::TextureComponentType::Uint,
+                    },
+                },
+                wgpu::BindGroupLayoutEntry {
+                    binding: 1,
+                    visibility: wgpu::ShaderStage::FRAGMENT,
+                    ty: wgpu::BindingType::Sampler {
+                        comparison: false,
+                    }
+                },
+            ],
+            label: Some("texture_bind_group_layout"),
+        });
+
+        let diffuse_bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
+            layout: &texture_bind_group_layout,
+            bindings: &[
+                wgpu::Binding {
+                    binding: 0,
+                    resource: wgpu::BindingResource::TextureView(&diffuse_texture.view),
+                },
+                wgpu::Binding {
+                    binding: 1,
+                    resource: wgpu::BindingResource::Sampler(&diffuse_texture.sampler),
+                },
+            ],
+            label: Some("diffuse_bind_group"),
+        });
+
+        (
+            diffuse_texture,
+            diffuse_bind_group,
+            texture_bind_group_layout,
+        )
+    }
+
     pub(super) async fn new(window: &Window) -> Self {
         let num_vertices = VERTICES.len() as u32;
         let num_indices = INDICES.len() as u32;
@@ -134,7 +191,7 @@ impl State {
             },
             wgpu::BackendBit::PRIMARY,
         ).await.unwrap();
-        let (device, queue) = adapter.request_device(&wgpu::DeviceDescriptor {
+        let (device, mut queue) = adapter.request_device(&wgpu::DeviceDescriptor {
             extensions: wgpu::Extensions {
                 anisotropic_filtering: false,
             },
@@ -149,7 +206,17 @@ impl State {
         };
         let swap_chain = device.create_swap_chain(&surface, &sc_desc);
 
-        let render_pipeline = Self::compile_shaders(&device, &sc_desc);
+        let (
+            diffuse_texture,
+            diffuse_bind_group,
+            texture_bind_group_layout,
+         ) = Self::load_texture(&device, &mut queue);
+
+        let render_pipeline = Self::compile_shaders(
+            &device,
+            &sc_desc,
+            &texture_bind_group_layout,
+        );
         let vertex_buffer = Self::new_vertex_buffer(&device);
         let index_buffer = Self::new_index_buffer(&device);
         Self {
@@ -159,6 +226,8 @@ impl State {
             queue,
             sc_desc,
             swap_chain,
+            diffuse_texture,
+            diffuse_bind_group,
             render_pipeline,
             vertex_buffer,
             index_buffer,
@@ -208,6 +277,7 @@ impl State {
                 depth_stencil_attachment: None,
             });
             render_pass.set_pipeline(&self.render_pipeline);
+            render_pass.set_bind_group(0, &self.diffuse_bind_group, &[]);
             render_pass.set_vertex_buffer(0, &self.vertex_buffer, 0, 0);
             render_pass.set_index_buffer(&self.index_buffer, 0, 0);
             render_pass.draw_indexed(0..self.num_indices, 0, 0..1);

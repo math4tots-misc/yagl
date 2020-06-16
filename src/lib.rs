@@ -3,6 +3,8 @@ extern crate wgpu;
 extern crate futures;
 extern crate shaderc;
 extern crate bytemuck;
+extern crate image;
+extern crate failure;
 
 mod tut;
 

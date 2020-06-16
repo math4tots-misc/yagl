@@ -1,5 +1,7 @@
+//! Following WGPU Tutorial: https://sotrh.github.io/learn-wgpu/
 mod state;
 mod vert;
+mod texture;
 use crate::futures::executor::block_on;
 use crate::winit::{
     event::{
@@ -21,6 +23,7 @@ use state::State;
 use vert::Vertex;
 use vert::VERTICES;
 use vert::INDICES;
+use texture::Texture;
 
 pub fn main() {
     let event_loop = EventLoop::new();
