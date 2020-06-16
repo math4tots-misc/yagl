@@ -2,6 +2,8 @@
 mod state;
 mod vert;
 mod texture;
+mod camera;
+mod uni;
 use crate::futures::executor::block_on;
 use crate::winit::{
     event::{
@@ -24,6 +26,9 @@ use vert::Vertex;
 use vert::VERTICES;
 use vert::INDICES;
 use texture::Texture;
+use camera::Camera;
+use camera::CameraController;
+use uni::Uniforms;
 
 pub fn main() {
     let event_loop = EventLoop::new();

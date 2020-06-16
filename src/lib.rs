@@ -5,6 +5,7 @@ extern crate shaderc;
 extern crate bytemuck;
 extern crate image;
 extern crate failure;
+extern crate cgmath;
 
 mod tut;
 
