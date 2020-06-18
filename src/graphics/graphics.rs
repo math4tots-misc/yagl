@@ -115,11 +115,17 @@ impl Graphics {
                     DrawTask::SetPipeline(pipeline) => {
                         render_pass.set_pipeline(pipeline);
                     }
-                    DrawTask::SetVertexBuffer{ slot, buffer, offset, size } => {
+                    DrawTask::SetVertexBuffer { slot, buffer, offset, size } => {
                         render_pass.set_vertex_buffer(*slot, buffer, *offset, *size);
+                    }
+                    DrawTask::SetIndexBuffer { buffer, offset, size } => {
+                        render_pass.set_index_buffer(buffer, *offset, *size);
                     }
                     DrawTask::Draw { vertices, instances } => {
                         render_pass.draw(vertices.clone(), instances.clone());
+                    }
+                    DrawTask::DrawIndexed { indices, base_vertex, instances } => {
+                        render_pass.draw_indexed(indices.clone(), *base_vertex, instances.clone())
                     }
                 }
             }

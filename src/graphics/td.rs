@@ -65,7 +65,16 @@ impl Drawable for TestDrawable {
                 offset: 0,
                 size: 0,
             },
-            DrawTask::Draw { vertices: 0..data.num_vertices, instances: 0..1 },
+            DrawTask::SetIndexBuffer {
+                buffer: data.index_buffer.clone(),
+                offset: 0,
+                size: 0,
+            },
+            DrawTask::DrawIndexed {
+                indices: 0..data.num_indices,
+                base_vertex: 0,
+                instances: 0..1,
+            },
         ])
     }
 }
@@ -73,6 +82,8 @@ impl Drawable for TestDrawable {
 struct Data {
     num_vertices: u32,
     vertex_buffer: Rc<wgpu::Buffer>,
+    num_indices: u32,
+    index_buffer: Rc<wgpu::Buffer>,
 }
 
 impl Data {
@@ -82,9 +93,15 @@ impl Data {
             bytemuck::cast_slice(VERTICES),
             wgpu::BufferUsage::VERTEX,
         ).into();
+        let index_buffer = device.create_buffer_with_data(
+            bytemuck::cast_slice(INDICES),
+            wgpu::BufferUsage::INDEX,
+        ).into();
         Ok(Self {
             num_vertices: VERTICES.len() as u32,
             vertex_buffer,
+            num_indices: INDICES.len() as u32,
+            index_buffer,
         })
     }
 }
@@ -99,7 +116,15 @@ unsafe impl bytemuck::Pod for Vertex {}
 unsafe impl bytemuck::Zeroable for Vertex {}
 
 const VERTICES: &[Vertex] = &[
-    Vertex { position: [0.0, 0.5, 0.0], color: [1.0, 0.0, 0.0] },
-    Vertex { position: [-0.5, -0.5, 0.0], color: [0.0, 1.0, 0.0] },
-    Vertex { position: [0.5, -0.5, 0.0], color: [0.0, 0.0, 1.0] },
+    Vertex { position: [-0.0868241, 0.49240386, 0.0], color: [0.5, 0.0, 0.5] }, // A
+    Vertex { position: [-0.49513406, 0.06958647, 0.0], color: [0.5, 0.0, 0.5] }, // B
+    Vertex { position: [-0.21918549, -0.44939706, 0.0], color: [0.5, 0.0, 0.5] }, // C
+    Vertex { position: [0.35966998, -0.3473291, 0.0], color: [0.5, 0.0, 0.5] }, // D
+    Vertex { position: [0.44147372, 0.2347359, 0.0],color: [0.5, 0.0, 0.5] }, // E
+];
+
+const INDICES: &[u16] = &[
+    0, 1, 4,
+    1, 2, 4,
+    2, 3, 4,
 ];

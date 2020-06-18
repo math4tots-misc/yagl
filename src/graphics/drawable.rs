@@ -38,9 +38,16 @@ pub enum DrawTask {
     SetPipeline(Rc<wgpu::RenderPipeline>),
 
     /// Calls set_vertex_buffer
-    /// Affects following draw and indexed draw calls
+    /// Affects following draw and draw indexed calls
     SetVertexBuffer {
         slot: u32,
+        buffer: Rc<wgpu::Buffer>,
+        offset: wgpu::BufferAddress,
+        size: wgpu::BufferAddress,
+    },
+
+    /// Calls set_index_buffer
+    SetIndexBuffer {
         buffer: Rc<wgpu::Buffer>,
         offset: wgpu::BufferAddress,
         size: wgpu::BufferAddress,
@@ -56,6 +63,12 @@ pub enum DrawTask {
 
         // the range of instance indices to draw
         // this is what sets the 'gl_InstanceIndex' in the vertex shaders
+        instances: Range<u32>,
+    },
+
+    DrawIndexed {
+        indices: Range<u32>,
+        base_vertex: i32,
         instances: Range<u32>,
     },
 }
