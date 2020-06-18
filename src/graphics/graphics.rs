@@ -115,6 +115,9 @@ impl Graphics {
                     DrawTask::SetPipeline(pipeline) => {
                         render_pass.set_pipeline(pipeline);
                     }
+                    DrawTask::SetVertexBuffer{ slot, buffer, offset, size } => {
+                        render_pass.set_vertex_buffer(*slot, buffer, *offset, *size);
+                    }
                     DrawTask::Draw { vertices, instances } => {
                         render_pass.draw(vertices.clone(), instances.clone());
                     }

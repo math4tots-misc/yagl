@@ -7,6 +7,7 @@ use crate::AppContext;
 use crate::DrawTask;
 use crate::GraphicsContext;
 use crate::anyhow::Result;
+use crate::bytemuck;
 use crate::shaders;
 use crate::anyhow::Context;
 use wgpu::RenderPass;
@@ -30,80 +31,75 @@ impl TestDrawable {
         }
         Ok(Ref::map(self.data.borrow(), |d| d.as_ref().unwrap()))
     }
+
+    pub(crate) fn vertex_buffer_descriptor<'a>() -> wgpu::VertexBufferDescriptor<'a> {
+        use std::mem;
+        wgpu::VertexBufferDescriptor {
+            stride: mem::size_of::<Vertex>() as wgpu::BufferAddress,
+            step_mode: wgpu::InputStepMode::Vertex,
+            attributes: &[
+                wgpu::VertexAttributeDescriptor {
+                    offset: 0,
+                    shader_location: 0,
+                    format: wgpu::VertexFormat::Float3,
+                },
+                wgpu::VertexAttributeDescriptor {
+                    offset: mem::size_of::<[f32; 3]>() as wgpu::BufferAddress,
+                    shader_location: 1,
+                    format: wgpu::VertexFormat::Float3,
+                }
+            ]
+        }
+    }
 }
 
 impl Drawable for TestDrawable {
     fn draw(&self, actx: &mut AppContext, gctx: &mut GraphicsContext) -> Result<Vec<DrawTask>> {
         let data = self.data(actx, gctx)?;
+        let ggl = &actx.globals.graphics;
         Ok(vec![
-            DrawTask::SetPipeline(data.render_pipeline.clone()),
-            DrawTask::Draw { vertices: 0..3, instances: 0..1 },
+            DrawTask::SetPipeline(ggl.test.render_pipeline.clone()),
+            DrawTask::SetVertexBuffer {
+                slot: 0,
+                buffer: data.vertex_buffer.clone(),
+                offset: 0,
+                size: 0,
+            },
+            DrawTask::Draw { vertices: 0..data.num_vertices, instances: 0..1 },
         ])
     }
 }
 
 struct Data {
-    vertex_shader: wgpu::ShaderModule,
-    render_pipeline: Rc<wgpu::RenderPipeline>,
+    num_vertices: u32,
+    vertex_buffer: Rc<wgpu::Buffer>,
 }
 
 impl Data {
-    fn new(actx: &mut AppContext, gctx: &mut GraphicsContext) -> Result<Data> {
-        let vs_spirv = wgpu::read_spirv(std::io::Cursor::new(shaders::FIXED_VERT))
-            .context("Failed to read Spir-V vertex shader")?;
-
-        let fs_spirv = wgpu::read_spirv(std::io::Cursor::new(shaders::FIXED_FRAG))
-            .context("Failed to read Spir-V fragment shader")?;
-
+    fn new(actx: &mut AppContext, gctx: &mut GraphicsContext) -> Result<Self> {
         let device = &gctx.graphics.device;
-        let sc_desc = &gctx.graphics.sc_desc;
-
-        let vertex_shader = device.create_shader_module(&vs_spirv);
-        let fragment_shader = device.create_shader_module(&fs_spirv);
-
-        let render_pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
-            bind_group_layouts: &[],
-        });
-
-        let render_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
-            layout: &render_pipeline_layout,
-            vertex_stage: wgpu::ProgrammableStageDescriptor {
-                module: &vertex_shader,
-                entry_point: "main",
-            },
-            fragment_stage: Some(wgpu::ProgrammableStageDescriptor {
-                module: &fragment_shader,
-                entry_point: "main",
-            }),
-            rasterization_state: Some(wgpu::RasterizationStateDescriptor {
-                front_face: wgpu::FrontFace::Ccw,
-                cull_mode: wgpu::CullMode::Back,
-                depth_bias: 0,
-                depth_bias_slope_scale: 0.0,
-                depth_bias_clamp: 0.0,
-            }),
-            color_states: &[
-                wgpu::ColorStateDescriptor {
-                    format: sc_desc.format,
-                    color_blend: wgpu::BlendDescriptor::REPLACE,
-                    alpha_blend: wgpu::BlendDescriptor::REPLACE,
-                    write_mask: wgpu::ColorWrite::ALL,
-                },
-            ],
-            primitive_topology: wgpu::PrimitiveTopology::TriangleList,
-            depth_stencil_state: None,
-            vertex_state: wgpu::VertexStateDescriptor {
-                index_format: wgpu::IndexFormat::Uint16,
-                vertex_buffers: &[],
-            },
-            sample_count: 1,
-            sample_mask: !0,
-            alpha_to_coverage_enabled: false,
-        });
-
-        Ok(Data {
-            vertex_shader,
-            render_pipeline: Rc::new(render_pipeline),
+        let vertex_buffer = device.create_buffer_with_data(
+            bytemuck::cast_slice(VERTICES),
+            wgpu::BufferUsage::VERTEX,
+        ).into();
+        Ok(Self {
+            num_vertices: VERTICES.len() as u32,
+            vertex_buffer,
         })
     }
 }
+
+#[repr(C)]
+#[derive(Copy, Clone, Debug)]
+struct Vertex {
+    position: [f32; 3],
+    color: [f32; 3],
+}
+unsafe impl bytemuck::Pod for Vertex {}
+unsafe impl bytemuck::Zeroable for Vertex {}
+
+const VERTICES: &[Vertex] = &[
+    Vertex { position: [0.0, 0.5, 0.0], color: [1.0, 0.0, 0.0] },
+    Vertex { position: [-0.5, -0.5, 0.0], color: [0.0, 1.0, 0.0] },
+    Vertex { position: [0.5, -0.5, 0.0], color: [0.0, 0.0, 1.0] },
+];

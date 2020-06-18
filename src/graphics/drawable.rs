@@ -35,8 +35,16 @@ pub trait Drawable {
 pub enum DrawTask {
 
     /// Calls wgpu::RenderPass::set_pipeline
-    ///
     SetPipeline(Rc<wgpu::RenderPipeline>),
+
+    /// Calls set_vertex_buffer
+    /// Affects following draw and indexed draw calls
+    SetVertexBuffer {
+        slot: u32,
+        buffer: Rc<wgpu::Buffer>,
+        offset: wgpu::BufferAddress,
+        size: wgpu::BufferAddress,
+    },
 
     /// Calls wgpu::RenderPass::draw
     /// Draws primitives from the active vertex buffer(s).

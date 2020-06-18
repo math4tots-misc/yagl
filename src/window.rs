@@ -52,7 +52,7 @@ impl Window {
         let event_loop = self.event_loop;
         let window = self.window;
         let mut graphics = self.graphics;
-        let globals = Globals::new();
+        let globals = Globals::new(&mut graphics).unwrap();
 
         let mut game = {
             let mut actx = AppContext {

@@ -1,4 +1,7 @@
 use crate::winit::event_loop::ControlFlow;
+use crate::GraphicsGlobals;
+use crate::Graphics;
+use crate::anyhow::Result;
 use std::rc::Rc;
 
 /// A reference to an instance of this struct is passed to most methods on
@@ -18,10 +21,14 @@ impl<'a> AppContext<'a> {
 
 /// Various global values needed by various parts of the system
 pub(crate) struct Globals {
+    pub(crate) graphics: GraphicsGlobals,
 }
 
 impl Globals {
-    pub fn new() -> Rc<Globals> {
-        Rc::new(Globals {})
+    pub fn new(graphics: &mut Graphics) -> Result<Rc<Globals>> {
+        let graphics = GraphicsGlobals::new(graphics)?;
+        Ok(Rc::new(Globals {
+            graphics,
+        }))
     }
 }

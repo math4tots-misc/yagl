@@ -28,6 +28,7 @@ pub use input::DeviceId;
 pub use input::Key;
 
 use graphics::shaders;
+use graphics::GraphicsGlobals;
 use context::Globals;
 
 pub use tut::main;
