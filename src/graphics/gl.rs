@@ -21,6 +21,7 @@ impl GraphicsGlobals {
 }
 
 pub(crate) struct TestStuff {
+    pub(crate) bind_group_layout: Rc<wgpu::BindGroupLayout>,
     pub(crate) render_pipeline: Rc<wgpu::RenderPipeline>,
 }
 
@@ -38,8 +39,23 @@ impl TestStuff {
         let vertex_shader = device.create_shader_module(&vs_spirv);
         let fragment_shader = device.create_shader_module(&fs_spirv);
 
+        let bind_group_layout = Rc::new(device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+            bindings: &[
+                wgpu::BindGroupLayoutEntry {
+                    binding: 0,
+                    visibility: wgpu::ShaderStage::VERTEX,
+                    ty: wgpu::BindingType::UniformBuffer {
+                        dynamic: false,
+                    },
+                },
+            ],
+            label: Some("uniform_bind_group_layout"),
+        }));
+
         let render_pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
-            bind_group_layouts: &[],
+            bind_group_layouts: &[
+                &bind_group_layout,
+            ],
         });
 
         let render_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
@@ -81,6 +97,7 @@ impl TestStuff {
         }).into();
 
         Ok(Self {
+            bind_group_layout,
             render_pipeline,
         })
     }

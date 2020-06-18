@@ -81,15 +81,15 @@ impl Graphics {
             Err(error) => return Err(anyhow!(format!("{:?}", error))),
         };
 
-        let mut encoder = self.device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
-            label: Some("Render Encoder"),
-        });
-
         let gctx = GraphicsContext {
             graphics: self,
         };
 
         let draw_tasks = game.draw(actx, gctx)?;
+
+        let mut encoder = self.device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
+            label: Some("Render Encoder"),
+        });
 
         {
             let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
@@ -120,6 +120,9 @@ impl Graphics {
                     }
                     DrawTask::SetIndexBuffer { buffer, offset, size } => {
                         render_pass.set_index_buffer(buffer, *offset, *size);
+                    }
+                    DrawTask::SetBindGroup { index, bind_group, offsets } => {
+                        render_pass.set_bind_group(*index, bind_group, offsets)
                     }
                     DrawTask::Draw { vertices, instances } => {
                         render_pass.draw(vertices.clone(), instances.clone());

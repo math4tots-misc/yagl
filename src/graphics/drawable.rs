@@ -53,6 +53,13 @@ pub enum DrawTask {
         size: wgpu::BufferAddress,
     },
 
+    /// Calls set_bind_group
+    SetBindGroup {
+        index: u32,
+        bind_group: Rc<wgpu::BindGroup>,
+        offsets: Vec<wgpu::DynamicOffset>,
+    },
+
     /// Calls wgpu::RenderPass::draw
     /// Draws primitives from the active vertex buffer(s).
     /// Active vertex buffers can be set with SetVertexBuffers
