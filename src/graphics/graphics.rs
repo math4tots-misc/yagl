@@ -4,6 +4,7 @@ use crate::anyhow::Result;
 use crate::anyhow::anyhow;
 use crate::Game;
 use crate::AppContext;
+use crate::DrawTask;
 
 
 /// Simplified 2D graphics
@@ -84,8 +85,14 @@ impl Graphics {
             label: Some("Render Encoder"),
         });
 
+        let gctx = GraphicsContext {
+            graphics: self,
+        };
+
+        let draw_tasks = game.draw(actx, gctx)?;
+
         {
-            let render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+            let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
                 color_attachments: &[
                     wgpu::RenderPassColorAttachmentDescriptor {
                         attachment: &frame.view,
@@ -103,12 +110,16 @@ impl Graphics {
                 depth_stencil_attachment: None,
             });
 
-            let mut gctx = GraphicsContext {
-                graphics: self,
-                render_pass,
-            };
-
-            game.draw(actx, &mut gctx)?;
+            for draw_task in draw_tasks.iter() {
+                match draw_task {
+                    DrawTask::SetPipeline(pipeline) => {
+                        render_pass.set_pipeline(pipeline);
+                    }
+                    DrawTask::Draw { vertices, instances } => {
+                        render_pass.draw(vertices.clone(), instances.clone());
+                    }
+                }
+            }
         }
 
         self.queue.submit(&[encoder.finish()]);
@@ -120,5 +131,4 @@ impl Graphics {
 /// Context that's available in any place where rendering/drawing is needed
 pub struct GraphicsContext<'a> {
     pub(crate) graphics: &'a mut Graphics,
-    pub(crate) render_pass: wgpu::RenderPass<'a>,
 }

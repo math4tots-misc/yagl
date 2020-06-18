@@ -2,6 +2,7 @@ use crate::AppContext;
 use crate::GraphicsContext;
 use crate::DeviceId;
 use crate::Key;
+use crate::DrawTask;
 use crate::anyhow::Result;
 
 /// Trait describing the behavior of a game.
@@ -17,19 +18,11 @@ pub trait Game where Self: 'static + Sized {
     fn resize(&mut self, actx: &mut AppContext, width: u32, height: u32) -> Result<()> { Ok(()) }
 
     /// Called when drawing on the screen is requested
-    /// TODO: In a perfect world, I actually want the signature to look like
+    /// The GraphicsContext contains the current device information, etc.
     ///
-    ///     fn draw(&self, actx: &mut AppContext) -> Result<Rc<impl Drawable>>
+    /// The method should return DrawTasks to run
     ///
-    /// alas, this is not yet possible in Rust because returning
-    /// an impl trait from trait impls are blocked on higher kinded types.
-    /// For now, ideally code implementing this method should look like:
-    ///
-    ///     fn draw(..) {
-    ///         let drawable = ...
-    ///         drawable.draw(actx, gctx)
-    ///     }
-    fn draw(&self, actx: &mut AppContext, gctx: &mut GraphicsContext) -> Result<()>;
+    fn draw(&mut self, actx: &mut AppContext, gctx: GraphicsContext) -> Result<Vec<DrawTask>>;
 
     /// Called to notify the game that a key was pressed.
     ///

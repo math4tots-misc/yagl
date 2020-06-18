@@ -20,6 +20,7 @@ pub use window::Window;
 pub use window::run;
 pub use graphics::Graphics;
 pub use graphics::Drawable;
+pub use graphics::DrawTask;
 pub use graphics::TestDrawable;
 pub use graphics::GraphicsContext;
 pub use context::AppContext;

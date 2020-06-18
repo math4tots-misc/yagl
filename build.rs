@@ -13,6 +13,7 @@ fn main() {
 fn build_shaders() {
     let mut compiler = Compiler::new().unwrap();
     build_shader(&mut compiler, &pt("src/graphics/shaders/fixed.vert"), ShaderKind::Vertex);
+    build_shader(&mut compiler, &pt("src/graphics/shaders/fixed.frag"), ShaderKind::Fragment);
     build_shader(&mut compiler, &pt("src/graphics/shaders/shader.vert"), ShaderKind::Vertex);
     build_shader(&mut compiler, &pt("src/graphics/shaders/shader.frag"), ShaderKind::Fragment);
     build_shader(&mut compiler, &pt("src/tut/shader.vert"), ShaderKind::Vertex);

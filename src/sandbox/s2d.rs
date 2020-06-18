@@ -1,3 +1,4 @@
+use crate::DrawTask;
 use crate::Game;
 use crate::AppContext;
 use crate::GraphicsContext;
@@ -15,9 +16,8 @@ impl Game for SampleGame {
         Ok(())
     }
 
-    fn draw(&self, actx: &mut AppContext, gctx: &mut GraphicsContext) -> Result<()> {
-        self.td.draw(actx, gctx)?;
-        Ok(())
+    fn draw(&mut self, actx: &mut AppContext, mut gctx: GraphicsContext) -> Result<Vec<DrawTask>> {
+        self.td.draw(actx, &mut gctx)
     }
 }
 

@@ -4,9 +4,11 @@
 use crate::Drawable;
 use crate::Globals;
 use crate::AppContext;
+use crate::DrawTask;
 use crate::GraphicsContext;
 use crate::anyhow::Result;
 use crate::shaders;
+use crate::anyhow::Context;
 use wgpu::RenderPass;
 use std::rc::Rc;
 use std::cell::RefCell;
@@ -31,23 +33,34 @@ impl TestDrawable {
 }
 
 impl Drawable for TestDrawable {
-    fn draw(&self, actx: &mut AppContext, gctx: &mut GraphicsContext) -> Result<()> {
-        Ok(())
+    fn draw(&self, actx: &mut AppContext, gctx: &mut GraphicsContext) -> Result<Vec<DrawTask>> {
+        let data = self.data(actx, gctx)?;
+        Ok(vec![
+            DrawTask::SetPipeline(data.render_pipeline.clone()),
+            DrawTask::Draw { vertices: 0..3, instances: 0..1 },
+        ])
     }
 }
 
 struct Data {
     vertex_shader: wgpu::ShaderModule,
+    render_pipeline: Rc<wgpu::RenderPipeline>,
 }
 
 impl Data {
     fn new(actx: &mut AppContext, gctx: &mut GraphicsContext) -> Result<Data> {
-        let vs_spirv = wgpu::read_spirv(std::io::Cursor::new(shaders::fixed))?;
+        let vs_spirv = wgpu::read_spirv(std::io::Cursor::new(shaders::FIXED_VERT))
+            .context("Failed to read Spir-V vertex shader")?;
+
+        let fs_spirv = wgpu::read_spirv(std::io::Cursor::new(shaders::FIXED_FRAG))
+            .context("Failed to read Spir-V fragment shader")?;
 
         let device = &gctx.graphics.device;
         let sc_desc = &gctx.graphics.sc_desc;
 
         let vertex_shader = device.create_shader_module(&vs_spirv);
+        let fragment_shader = device.create_shader_module(&fs_spirv);
+
         let render_pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
             bind_group_layouts: &[],
         });
@@ -58,7 +71,10 @@ impl Data {
                 module: &vertex_shader,
                 entry_point: "main",
             },
-            fragment_stage: None,
+            fragment_stage: Some(wgpu::ProgrammableStageDescriptor {
+                module: &fragment_shader,
+                entry_point: "main",
+            }),
             rasterization_state: Some(wgpu::RasterizationStateDescriptor {
                 front_face: wgpu::FrontFace::Ccw,
                 cull_mode: wgpu::CullMode::Back,
@@ -87,6 +103,7 @@ impl Data {
 
         Ok(Data {
             vertex_shader,
+            render_pipeline: Rc::new(render_pipeline),
         })
     }
 }
