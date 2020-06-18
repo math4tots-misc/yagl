@@ -16,3 +16,6 @@ bytemuck = "1.2.0"
 failure = "0.1.8"
 cgmath = "0.17"
 anyhow = "1.0"
+
+[build-dependencies]
+shaderc = "0.6"

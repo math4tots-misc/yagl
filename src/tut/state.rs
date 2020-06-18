@@ -1,6 +1,5 @@
 use crate::wgpu;
 use crate::bytemuck;
-use crate::shaderc;
 use crate::winit::{
     event::{
         WindowEvent,
@@ -51,26 +50,11 @@ impl State {
         texture_bind_group_layout: &wgpu::BindGroupLayout,
         uniform_bind_group_layout: &wgpu::BindGroupLayout,
     ) -> wgpu::RenderPipeline {
-        let vs_src = include_str!("shader.vert");
-        let fs_src = include_str!("shader.frag");
+        let vs_spirv: &[u8] = include_bytes!("shader.vert.spirv");
+        let fs_spirv: &[u8] = include_bytes!("shader.frag.spirv");
 
-        let mut compiler = shaderc::Compiler::new().unwrap();
-        let vs_spirv = compiler.compile_into_spirv(
-            vs_src,
-            shaderc::ShaderKind::Vertex,
-            "shader.vert",
-            "main",
-            None,
-        ).unwrap();
-        let fs_spirv = compiler.compile_into_spirv(
-            fs_src,
-            shaderc::ShaderKind::Fragment,
-            "shader.frag",
-            "main",
-            None,
-        ).unwrap();
-        let vs_data = wgpu::read_spirv(std::io::Cursor::new(vs_spirv.as_binary_u8())).unwrap();
-        let fs_data = wgpu::read_spirv(std::io::Cursor::new(fs_spirv.as_binary_u8())).unwrap();
+        let vs_data = wgpu::read_spirv(std::io::Cursor::new(vs_spirv)).unwrap();
+        let fs_data = wgpu::read_spirv(std::io::Cursor::new(fs_spirv)).unwrap();
 
         let vs_module = device.create_shader_module(&vs_data);
         let fs_module = device.create_shader_module(&fs_data);
