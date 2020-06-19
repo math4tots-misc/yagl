@@ -16,8 +16,8 @@ fn build_shaders() {
     build_shader(&mut compiler, &pt("src/graphics/shaders/fixed.frag"), ShaderKind::Fragment);
     build_shader(&mut compiler, &pt("src/graphics/shaders/shader.vert"), ShaderKind::Vertex);
     build_shader(&mut compiler, &pt("src/graphics/shaders/shader.frag"), ShaderKind::Fragment);
-    build_shader(&mut compiler, &pt("src/tut/shader.vert"), ShaderKind::Vertex);
-    build_shader(&mut compiler, &pt("src/tut/shader.frag"), ShaderKind::Fragment);
+    build_shader(&mut compiler, &pt("src/tut/wgpu/shader.vert"), ShaderKind::Vertex);
+    build_shader(&mut compiler, &pt("src/tut/wgpu/shader.frag"), ShaderKind::Fragment);
 }
 
 fn build_shader(compiler: &mut Compiler, path: &str, kind: ShaderKind) {

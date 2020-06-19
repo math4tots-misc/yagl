@@ -31,7 +31,7 @@ use graphics::shaders;
 use graphics::GraphicsGlobals;
 use context::Globals;
 
-pub use tut::main;
+pub use tut::tutorial_wgpu_main;
 pub use sandbox::s2d_main;
 
 #[cfg(test)]
