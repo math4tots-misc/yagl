@@ -16,6 +16,18 @@ bytemuck = "1.2.0"
 failure = "0.1.8"
 cgmath = "0.17"
 anyhow = "1.0"
+gfx-hal = "0.5.2"
+log = "0.4.8"
+simple_logger = "1.6.0"
+
+[target.'cfg(target_os = "macos")'.dependencies.gfx-backend-metal]
+version = "0.5.2"
+
+[target.'cfg(target_os = "windows")'.dependencies.gfx-backend-dx12]
+version = "0.5.2"
+
+[target.'cfg(target_os = "linux")'.dependencies.gfx-backend-vulkan]
+version = "0.5.2"
 
 [build-dependencies]
 shaderc = "0.6"
