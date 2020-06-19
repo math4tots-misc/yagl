@@ -1,40 +1,31 @@
-use crate::shaders;
+use crate::anyhow::{Result, Context};
 use crate::wgpu;
-use crate::Graphics;
-use crate::TestDrawable;
-use crate::anyhow::Result;
-use crate::anyhow::Context;
+use crate::shaders;
 use std::rc::Rc;
 
-/// global values specific to graphics
-pub(crate) struct GraphicsGlobals {
-    pub(crate) test: TestStuff,
+/// A Mesh prepared for drawing
+#[allow(dead_code)]
+pub(crate) struct PreparedMesh {
 }
 
-impl GraphicsGlobals {
-    pub fn new(graphics: &mut Graphics) -> Result<Self> {
-        let test = TestStuff::new(graphics)?;
-        Ok(Self {
-            test,
-        })
-    }
-}
-
-pub(crate) struct TestStuff {
+/// Global graphics stuff for drawing meshes
+#[allow(dead_code)]
+pub(crate) struct MeshStuff {
     pub(crate) bind_group_layout: Rc<wgpu::BindGroupLayout>,
     pub(crate) render_pipeline: Rc<wgpu::RenderPipeline>,
 }
 
-impl TestStuff {
-    pub fn new(graphics: &mut Graphics) -> Result<Self> {
+impl MeshStuff {
+    pub(super) fn new(wg: &super::wg::Wgpu) -> Result<Self> {
+        let device = &wg.device;
+        let sc_desc = &wg.sc_desc;
+
+        // TODO: Use mesh shaders instead of the test shaders
         let vs_spirv = wgpu::read_spirv(std::io::Cursor::new(shaders::FIXED_VERT))
             .context("Failed to read Spir-V vertex shader")?;
 
         let fs_spirv = wgpu::read_spirv(std::io::Cursor::new(shaders::FIXED_FRAG))
             .context("Failed to read Spir-V fragment shader")?;
-
-        let device = &graphics.wgpu.device;
-        let sc_desc = &graphics.wgpu.sc_desc;
 
         let vertex_shader = device.create_shader_module(&vs_spirv);
         let fragment_shader = device.create_shader_module(&fs_spirv);
@@ -58,7 +49,7 @@ impl TestStuff {
             ],
         });
 
-        let render_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
+        let render_pipeline = Rc::new(device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
             layout: &render_pipeline_layout,
             vertex_stage: wgpu::ProgrammableStageDescriptor {
                 module: &vertex_shader,
@@ -88,13 +79,13 @@ impl TestStuff {
             vertex_state: wgpu::VertexStateDescriptor {
                 index_format: wgpu::IndexFormat::Uint16,
                 vertex_buffers: &[
-                    TestDrawable::vertex_buffer_descriptor(),
+                    // TestDrawable::vertex_buffer_descriptor(),
                 ],
             },
             sample_count: 1,
             sample_mask: !0,
             alpha_to_coverage_enabled: false,
-        }).into();
+        }));
 
         Ok(Self {
             bind_group_layout,

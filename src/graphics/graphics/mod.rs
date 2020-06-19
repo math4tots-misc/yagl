@@ -1,3 +1,5 @@
+mod ms;
+mod wg;
 use crate::wgpu;
 use crate::winit;
 use crate::anyhow::Result;
@@ -5,17 +7,17 @@ use crate::anyhow::anyhow;
 use crate::Game;
 use crate::AppContext;
 use crate::DrawTask;
+use wg::Wgpu;
+use ms::MeshStuff;
+
+pub(crate) use ms::PreparedMesh;
 
 
 /// Simplified 2D graphics
 #[allow(dead_code)]
 pub struct Graphics {
-    pub(crate) surface: wgpu::Surface,
-    pub(crate) adapter: wgpu::Adapter,
-    pub(crate) device: wgpu::Device,
-    pub(crate) queue: wgpu::Queue,
-    pub(crate) sc_desc: wgpu::SwapChainDescriptor,
-    pub(crate) swap_chain: wgpu::SwapChain,
+    pub(crate) wgpu: Wgpu,
+    pub(crate) mesh: MeshStuff,
 }
 
 impl Graphics {
@@ -25,58 +27,27 @@ impl Graphics {
         Self::new(size.width, size.height, surface).await
     }
     async fn new(width: u32, height: u32, surface: wgpu::Surface) -> Result<Self> {
-        let adapter = match wgpu::Adapter::request(
-            &wgpu::RequestAdapterOptions {
-                power_preference: wgpu::PowerPreference::Default,
-                compatible_surface: Some(&surface),
-            },
-            wgpu::BackendBit::PRIMARY,
-        ).await {
-            Some(adapter) => adapter,
-            None => return Err(
-                anyhow!("Failed to get an adapter for wgpu Surface")
-            ),
-        };
-        let (device, queue) = adapter.request_device(&wgpu::DeviceDescriptor {
-            extensions: wgpu::Extensions {
-                anisotropic_filtering: false,
-            },
-            limits: Default::default(),
-        }).await;
-        let sc_desc = wgpu::SwapChainDescriptor {
-            usage: wgpu::TextureUsage::OUTPUT_ATTACHMENT,
-            format: wgpu::TextureFormat::Bgra8UnormSrgb,
-            width,
-            height,
-            present_mode: wgpu::PresentMode::Fifo,
-        };
-        let swap_chain = device.create_swap_chain(&surface, &sc_desc);
-        Ok(Self {
-            surface,
-            adapter,
-            device,
-            queue,
-            sc_desc,
-            swap_chain,
-        })
+        let wgpu = Wgpu::new(width, height, surface).await?;
+        let mesh = MeshStuff::new(&wgpu)?;
+        Ok(Self { wgpu, mesh })
     }
     pub fn width(&self) -> u32 {
-        self.sc_desc.width
+        self.wgpu.sc_desc.width
     }
     pub fn height(&self) -> u32 {
-        self.sc_desc.height
+        self.wgpu.sc_desc.height
     }
 
     /// Called by yagl code to adjust the graphics when the window changes
     /// Should not need to be called by client code
     pub(crate) fn resize(&mut self, new_width: u32, new_height: u32) {
-        self.sc_desc.width = new_width;
-        self.sc_desc.height = new_height;
-        self.swap_chain = self.device.create_swap_chain(&self.surface, &self.sc_desc);
+        self.wgpu.sc_desc.width = new_width;
+        self.wgpu.sc_desc.height = new_height;
+        self.wgpu.swap_chain = self.wgpu.device.create_swap_chain(&self.wgpu.surface, &self.wgpu.sc_desc);
     }
 
     pub(crate) fn render<G: Game>(&mut self, game: &mut G, actx: &mut AppContext) -> Result<()> {
-        let frame = match self.swap_chain.get_next_texture() {
+        let frame = match self.wgpu.swap_chain.get_next_texture() {
             Ok(frame) => frame,
             Err(error) => return Err(anyhow!(format!("{:?}", error))),
         };
@@ -87,7 +58,7 @@ impl Graphics {
 
         let draw_tasks = game.draw(actx, gctx)?;
 
-        let mut encoder = self.device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
+        let mut encoder = self.wgpu.device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
             label: Some("Render Encoder"),
         });
 
@@ -134,7 +105,7 @@ impl Graphics {
             }
         }
 
-        self.queue.submit(&[encoder.finish()]);
+        self.wgpu.queue.submit(&[encoder.finish()]);
 
         Ok(())
     }

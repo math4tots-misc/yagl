@@ -34,7 +34,7 @@ impl TestDrawable {
             *self.data.borrow_mut() = Some(Data::new(actx, gctx)?);
         }
         if self.data.borrow().as_ref().unwrap().dirty_uniforms {
-            let device = &gctx.graphics.device;
+            let device = &gctx.graphics.wgpu.device;
             let mut borrow = self.data.borrow_mut();
             let data = borrow.as_mut().unwrap();
 
@@ -56,7 +56,7 @@ impl TestDrawable {
                 std::mem::size_of::<Uniforms>() as wgpu::BufferAddress,
             );
 
-            gctx.graphics.queue.submit(&[encoder.finish()]);
+            gctx.graphics.wgpu.queue.submit(&[encoder.finish()]);
         }
         Ok(Ref::map(self.data.borrow(), |d| d.as_ref().unwrap()))
     }
@@ -128,7 +128,7 @@ struct Data {
 
 impl Data {
     fn new(actx: &mut AppContext, gctx: &mut GraphicsContext) -> Result<Self> {
-        let device = &gctx.graphics.device;
+        let device = &gctx.graphics.wgpu.device;
         let vertex_buffer = device.create_buffer_with_data(
             bytemuck::cast_slice(VERTICES),
             wgpu::BufferUsage::VERTEX,
@@ -144,7 +144,7 @@ impl Data {
         ));
         let uniform_bind_group = Self::uniform_bind_group(
             &actx.globals,
-            &gctx.graphics.device,
+            &gctx.graphics.wgpu.device,
             &uniform_buffer,
         ).into();
         Ok(Self {

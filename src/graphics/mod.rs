@@ -14,3 +14,4 @@ pub use drawable::DrawTask;
 pub use td::TestDrawable;
 
 pub(crate) use gl::GraphicsGlobals;
+pub(crate) use graphics::PreparedMesh;

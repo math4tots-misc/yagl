@@ -44,6 +44,7 @@ pub use input::Key;
 
 use graphics::shaders;
 use graphics::GraphicsGlobals;
+use graphics::PreparedMesh;
 use context::Globals;
 
 pub use tut::tutorial_wgpu_main;
