@@ -3,11 +3,6 @@ use crate::wgpu;
 use crate::shaders;
 use std::rc::Rc;
 
-/// A Mesh prepared for drawing
-#[allow(dead_code)]
-pub(crate) struct PreparedMesh {
-}
-
 /// Global graphics stuff for drawing meshes
 #[allow(dead_code)]
 pub(crate) struct MeshStuff {

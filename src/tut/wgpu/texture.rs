@@ -1,5 +1,5 @@
-use crate::failure;
 use crate::image::GenericImageView;
+use crate::anyhow::Result;
 
 pub struct Texture {
     pub texture: wgpu::Texture,
@@ -8,12 +8,12 @@ pub struct Texture {
 }
 
 impl Texture {
-    pub fn from_bytes(device: &wgpu::Device, bytes: &[u8]) -> Result<(Self, wgpu::CommandBuffer), failure::Error> {
+    pub fn from_bytes(device: &wgpu::Device, bytes: &[u8]) -> Result<(Self, wgpu::CommandBuffer)> {
         let img = image::load_from_memory(bytes)?;
         Self::from_image(device, &img)
     }
 
-    pub fn from_image(device: &wgpu::Device, img: &image::DynamicImage) -> Result<(Self, wgpu::CommandBuffer), failure::Error> {
+    pub fn from_image(device: &wgpu::Device, img: &image::DynamicImage) -> Result<(Self, wgpu::CommandBuffer)> {
         let rgba = img.as_rgba8().unwrap();
         let dimensions = img.dimensions();
 

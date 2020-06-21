@@ -10,8 +10,6 @@ use crate::DrawTask;
 use wg::Wgpu;
 use ms::MeshStuff;
 
-pub(crate) use ms::PreparedMesh;
-
 
 /// Simplified 2D graphics
 #[allow(dead_code)]
