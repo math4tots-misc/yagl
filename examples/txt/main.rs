@@ -63,7 +63,7 @@ impl yagl::Game for Game {
 
 fn main() {
     yagl::run(|actx| {
-        let text = Text::new(actx, "Hello world").unwrap();
+        let text = Text::new(actx, "").unwrap();
         println!("scale = {:?}", actx.scale());
         Ok(Game { text })
     })

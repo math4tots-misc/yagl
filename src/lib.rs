@@ -1,14 +1,6 @@
 extern crate a2d;
 extern crate anyhow;
-extern crate bytemuck;
-extern crate cgmath;
 extern crate futures;
-extern crate image;
-extern crate log;
-extern crate simple_logger;
-
-#[allow(unused_imports)]
-use log::{debug, error, info, trace, warn};
 
 use a2d::winit;
 
