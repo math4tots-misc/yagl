@@ -106,3 +106,18 @@ impl<'a> AppContext<'a> {
         Ok(self.graphics.new_text_grid(char_width, dim)?)
     }
 }
+
+pub struct RenderContext<'a>
+{
+    pub(crate) actx: &'a mut AppContext<'a>,
+}
+
+impl<'a> RenderContext<'a> {
+    pub fn actx(&mut self) -> &mut AppContext<'a> {
+        self.actx
+    }
+
+    pub fn render(&mut self, batches: &[&SpriteBatch]) {
+        self.actx.graphics.render(batches)
+    }
+}

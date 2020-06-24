@@ -7,6 +7,7 @@ use crate::winit::{
     window::WindowBuilder,
 };
 use crate::AppContext;
+use crate::RenderContext;
 use crate::DeviceId;
 use crate::Game;
 use crate::Key;
@@ -67,8 +68,10 @@ impl Window {
             };
             match event {
                 Event::RedrawRequested(_window_id) => {
-                    let batches = game.render(&mut actx).unwrap();
-                    graphics.render(&batches);
+                    let mut rctx = RenderContext {
+                        actx: &mut actx,
+                    };
+                    game.render(&mut rctx).unwrap();
                 }
                 Event::MainEventsCleared => {
                     window.request_redraw();

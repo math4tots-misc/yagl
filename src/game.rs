@@ -1,8 +1,8 @@
 use crate::anyhow::Result;
 use crate::AppContext;
+use crate::RenderContext;
 use crate::DeviceId;
 use crate::Key;
-use crate::SpriteBatch;
 
 /// Trait describing the behavior of a game.
 ///
@@ -20,11 +20,14 @@ where
     fn update(&mut self, actx: &mut AppContext) -> Result<()>;
 
     /// Called when drawing on the screen is requested
-    /// The GraphicsContext contains the current device information, etc.
     ///
-    /// The method should return DrawTasks to run
+    /// The RenderContext can retrieve the AppContext if needed with
+    /// the `actx()` method.
     ///
-    fn render(&mut self, actx: &mut AppContext) -> Result<Vec<&SpriteBatch>>;
+    /// To render something on the screen, the `render` method
+    /// on the RenderContext should be called exactly once.
+    /// If called more than once, it may erase the previous draw
+    fn render(&mut self, rctx: &mut RenderContext) -> Result<()>;
 
     /// Called when the window is resized
     fn resize(&mut self, actx: &mut AppContext, width: u32, height: u32) -> Result<()> {

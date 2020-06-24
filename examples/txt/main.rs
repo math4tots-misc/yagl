@@ -5,6 +5,7 @@ extern crate yagl;
 
 use anyhow::Result;
 use yagl::AppContext;
+use yagl::RenderContext;
 use yagl::DeviceId;
 use yagl::Instance;
 use yagl::Key;
@@ -21,12 +22,13 @@ impl yagl::Game for Game {
         Ok(())
     }
 
-    fn render(&mut self, actx: &mut AppContext) -> Result<Vec<&SpriteBatch>> {
-        Ok(self.text.batches())
+    fn render(&mut self, rctx: &mut RenderContext) -> Result<()> {
+        rctx.render(&self.text.batches());
+        Ok(())
     }
 
     fn ch(&mut self, actx: &mut AppContext, ch: char) -> Result<()> {
-        if ch >= '!' && (ch as u32) < 127 {
+        if ch >= ' ' && (ch as u32) < 127 {
             self.text.write_ch(actx, ch)?;
         }
         Ok(())

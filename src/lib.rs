@@ -10,6 +10,7 @@ mod input;
 mod window;
 
 pub use context::AppContext;
+pub use context::RenderContext;
 pub use game::Game;
 pub use input::DeviceId;
 pub use input::Key;
