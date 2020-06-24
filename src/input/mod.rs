@@ -9,4 +9,3 @@ mod key;
 pub struct DeviceId(pub(crate) WinitDeviceId);
 
 pub use key::Key;
-
