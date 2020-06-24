@@ -1,10 +1,10 @@
+use crate::a2d::Graphics2D;
 use crate::anyhow::Result;
 use crate::winit::event_loop::ControlFlow;
-use crate::a2d::Graphics2D;
-use crate::TextGrid;
-use crate::SpriteSheet;
-use crate::SpriteBatch;
 use crate::Color;
+use crate::SpriteBatch;
+use crate::SpriteSheet;
+use crate::TextGrid;
 use std::rc::Rc;
 
 /// A reference to an instance of this struct is passed to most methods on
@@ -20,7 +20,6 @@ impl<'a> AppContext<'a> {
         *self.control_flow = ControlFlow::Exit;
     }
 }
-
 
 /// Graphics methods
 impl<'a> AppContext<'a> {
@@ -51,10 +50,22 @@ impl<'a> AppContext<'a> {
     }
 
     /// Creates a new sprite sheet from explicitly specified colors
-    pub fn new_sheet_from_colors<C, V>(&mut self, width: u32, height: u32, colors: V) -> Result<Rc<SpriteSheet>>
-    where C: Into<Color>, V: IntoIterator<Item=C>,
+    pub fn new_sheet_from_colors<C, V>(
+        &mut self,
+        width: u32,
+        height: u32,
+        colors: V,
+    ) -> Result<Rc<SpriteSheet>>
+    where
+        C: Into<Color>,
+        V: IntoIterator<Item = C>,
     {
-        Ok(SpriteSheet::from_colors(self.graphics, width, height, colors)?)
+        Ok(SpriteSheet::from_colors(
+            self.graphics,
+            width,
+            height,
+            colors,
+        )?)
     }
 
     /// Creates a new sprite sheet 1 pixel by 1 pixel wide
@@ -64,8 +75,18 @@ impl<'a> AppContext<'a> {
     }
 
     /// Creates a new sprite sheet from a Vec<u8> of rgba data
-    pub fn new_sheet_from_rgba_bytes(&mut self, width: u32, height: u32, bytes: Vec<u8>) -> Result<Rc<SpriteSheet>> {
-        Ok(SpriteSheet::from_rgba_bytes(self.graphics, width, height, bytes)?)
+    pub fn new_sheet_from_rgba_bytes(
+        &mut self,
+        width: u32,
+        height: u32,
+        bytes: Vec<u8>,
+    ) -> Result<Rc<SpriteSheet>> {
+        Ok(SpriteSheet::from_rgba_bytes(
+            self.graphics,
+            width,
+            height,
+            bytes,
+        )?)
     }
 
     /// Creates a new SpriteBatch from a SpriteSheet

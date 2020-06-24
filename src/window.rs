@@ -1,3 +1,4 @@
+use crate::a2d::Graphics2D;
 use crate::anyhow::Result;
 use crate::futures::executor::block_on;
 use crate::winit::{
@@ -5,7 +6,6 @@ use crate::winit::{
     event_loop::{ControlFlow, EventLoop},
     window::WindowBuilder,
 };
-use crate::a2d::Graphics2D;
 use crate::AppContext;
 use crate::DeviceId;
 use crate::Game;

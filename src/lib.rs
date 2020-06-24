@@ -25,8 +25,9 @@ pub use window::run;
 pub use window::Window;
 
 // re-exported from a2d
+pub use a2d::Color;
+pub use a2d::Dimensions;
+pub use a2d::Instance;
 pub use a2d::SpriteBatch;
 pub use a2d::SpriteSheet;
 pub use a2d::TextGrid;
-pub use a2d::Color;
-pub use a2d::Dimensions;
