@@ -4,6 +4,7 @@ use crate::winit::event::VirtualKeyCode;
 ///
 /// Currently just mirrors the keys recognized by winit
 ///
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Key {
     /// The '1' key over the letters.
     Key1,
