@@ -1,8 +1,8 @@
 use crate::anyhow::Result;
 use crate::AppContext;
-use crate::RenderContext;
 use crate::DeviceId;
 use crate::Key;
+use crate::RenderContext;
 
 /// Trait describing the behavior of a game.
 ///

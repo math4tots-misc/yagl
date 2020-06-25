@@ -5,10 +5,10 @@ extern crate yagl;
 
 use anyhow::Result;
 use yagl::AppContext;
-use yagl::RenderContext;
 use yagl::DeviceId;
 use yagl::Instance;
 use yagl::Key;
+use yagl::RenderContext;
 use yagl::SpriteBatch;
 use yagl::TextGrid;
 

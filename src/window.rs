@@ -7,10 +7,10 @@ use crate::winit::{
     window::WindowBuilder,
 };
 use crate::AppContext;
-use crate::RenderContext;
 use crate::DeviceId;
 use crate::Game;
 use crate::Key;
+use crate::RenderContext;
 
 pub fn run<G: Game, F: FnOnce(&mut AppContext) -> Result<G>>(f: F) -> ! {
     let window = block_on(Window::new()).unwrap();
@@ -68,9 +68,7 @@ impl Window {
             };
             match event {
                 Event::RedrawRequested(_window_id) => {
-                    let mut rctx = RenderContext {
-                        actx: &mut actx,
-                    };
+                    let mut rctx = RenderContext { actx: &mut actx };
                     game.render(&mut rctx).unwrap();
                 }
                 Event::MainEventsCleared => {

@@ -107,8 +107,7 @@ impl<'a> AppContext<'a> {
     }
 }
 
-pub struct RenderContext<'a>
-{
+pub struct RenderContext<'a> {
     pub(crate) actx: &'a mut AppContext<'a>,
 }
 
