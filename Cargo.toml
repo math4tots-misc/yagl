@@ -11,6 +11,6 @@ readme = "README.md"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-a2d = "0.1.4"
+a2d = "0.1.5"
 anyhow = "1.0"
 futures = "0.3.4"

@@ -24,3 +24,5 @@ pub use a2d::Instance;
 pub use a2d::SpriteBatch;
 pub use a2d::SpriteSheet;
 pub use a2d::TextGrid;
+pub use a2d::Rect;
+pub use a2d::Point;

@@ -72,6 +72,7 @@ impl Window {
                     game.render(&mut rctx).unwrap();
                 }
                 Event::MainEventsCleared => {
+                    game.update(&mut actx).unwrap();
                     window.request_redraw();
                 }
                 Event::WindowEvent {

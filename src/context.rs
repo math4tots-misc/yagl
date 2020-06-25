@@ -89,6 +89,10 @@ impl<'a> AppContext<'a> {
         )?)
     }
 
+    pub fn load_courier_font_sheet(&mut self) -> Result<Rc<SpriteSheet>> {
+        Ok(self.graphics.courier_sprite_sheet()?)
+    }
+
     /// Creates a new SpriteBatch from a SpriteSheet
     pub fn new_batch(&mut self, sheet: Rc<SpriteSheet>) -> Result<SpriteBatch> {
         Ok(SpriteBatch::new(sheet))
