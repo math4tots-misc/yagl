@@ -16,6 +16,11 @@ pub trait Game
 where
     Self: 'static + Sized,
 {
+    /// This method is called exactly once on start
+    fn options(&self) -> Options {
+        Options::default()
+    }
+
     /// Called to check if the game should be updated
     fn update(&mut self, actx: &mut AppContext) -> Result<()>;
 
@@ -66,5 +71,25 @@ where
     /// passed to the client to process.
     fn key_released(&mut self, actx: &mut AppContext, dev: DeviceId, key: Key) -> Result<()> {
         Ok(())
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct Options {
+    /// Enable gamepad support
+    ///
+    /// This is currently not supported in winit directly,
+    /// so there's a bit of overhead in doing so (i.e. a secondary
+    /// thread is spawned).
+    ///
+    /// Enabled by default, but may be disabled if doing so is not desired
+    pub enable_gamepad: bool,
+}
+
+impl Default for Options {
+    fn default() -> Self {
+        Self {
+            enable_gamepad: true,
+        }
     }
 }

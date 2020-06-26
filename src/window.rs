@@ -1,15 +1,18 @@
 use crate::a2d::Graphics2D;
 use crate::anyhow::Result;
 use crate::futures::executor::block_on;
+use crate::gilrs;
+use crate::gilrs::Gilrs;
 use crate::winit::{
     event::{ElementState, Event, KeyboardInput, WindowEvent},
-    event_loop::{ControlFlow, EventLoop},
+    event_loop::{ControlFlow, EventLoop, EventLoopProxy},
     window::WindowBuilder,
 };
 use crate::AppContext;
 use crate::DeviceId;
 use crate::Game;
 use crate::Key;
+use crate::Options;
 use crate::RenderContext;
 
 pub fn run<G: Game, F: FnOnce(&mut AppContext) -> Result<G>>(f: F) -> ! {
@@ -18,14 +21,14 @@ pub fn run<G: Game, F: FnOnce(&mut AppContext) -> Result<G>>(f: F) -> ! {
 }
 
 pub struct Window {
-    event_loop: EventLoop<()>,
+    event_loop: EventLoop<OtherEvent>,
     window: crate::winit::window::Window,
     graphics: Graphics2D,
 }
 
 impl Window {
     pub async fn new() -> Result<Self> {
-        let event_loop = EventLoop::new();
+        let event_loop = EventLoop::with_user_event();
         let window = WindowBuilder::new().build(&event_loop).unwrap();
         let graphics = Graphics2D::from_winit_window(&window).await.unwrap();
         Ok(Self {
@@ -58,6 +61,17 @@ impl Window {
                 );
             }
 
+            {
+                let Options {
+                    enable_gamepad,
+                } = game.options();
+
+                if enable_gamepad {
+                    let proxy = event_loop.create_proxy();
+                    spawn_gilrs_listener_thread(proxy);
+                }
+            }
+
             game
         };
 
@@ -75,6 +89,11 @@ impl Window {
                     game.update(&mut actx).unwrap();
                     window.request_redraw();
                 }
+                Event::UserEvent(other) => match other {
+                    OtherEvent::Gilrs(event) => {
+                        println!("gilrs event -> {:?}", event);
+                    }
+                }
                 Event::WindowEvent {
                     ref event,
                     window_id,
@@ -91,7 +110,7 @@ impl Window {
                             ..
                         } => {
                             if let Some(key) = Key::from_winit(*keycode) {
-                                let dev = DeviceId(*device_id);
+                                let dev = (*device_id).into();
                                 match state {
                                     ElementState::Pressed => {
                                         game.key_pressed(&mut actx, dev, key).unwrap();
@@ -125,4 +144,21 @@ impl Window {
             }
         });
     }
+}
+
+fn spawn_gilrs_listener_thread(proxy: EventLoopProxy<OtherEvent>) {
+    let mut gilrs = Gilrs::new().unwrap();
+    std::thread::spawn(move || {
+        loop {
+            while let Some(event) = gilrs.next_event() {
+                proxy.send_event(OtherEvent::Gilrs(event)).unwrap();
+            }
+            std::thread::sleep(std::time::Duration::from_secs_f64(1.0 / 45.0));
+        }
+    });
+}
+
+#[derive(Debug, Clone)]
+enum OtherEvent {
+    Gilrs(gilrs::Event),
 }
