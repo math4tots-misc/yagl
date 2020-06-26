@@ -3,7 +3,8 @@ use crate::AppContext;
 use crate::DeviceId;
 use crate::Key;
 use crate::RenderContext;
-use crate::Button;
+use crate::GamepadButton;
+use crate::MouseButton;
 use crate::Axis;
 
 /// Trait describing the behavior of a game.
@@ -56,7 +57,7 @@ where
     /// In the future, there should be a separate 'key_scancode_*' method
     /// so that even if the key is not recognized, the raw scancode can be
     /// passed to the client to process.
-    fn key_pressed(&mut self, actx: &mut AppContext, dev: DeviceId, key: Key) -> Result<()> {
+    fn key_pressed(&mut self, actx: &mut AppContext, key: Key) -> Result<()> {
         if let Key::Escape = key {
             actx.exit();
         }
@@ -71,7 +72,19 @@ where
     /// In the future, there should be a separate 'key_scancode_*' method
     /// so that even if the key is not recognized, the raw scancode can be
     /// passed to the client to process.
-    fn key_released(&mut self, actx: &mut AppContext, dev: DeviceId, key: Key) -> Result<()> {
+    fn key_released(&mut self, actx: &mut AppContext, key: Key) -> Result<()> {
+        Ok(())
+    }
+
+    fn mouse_moved(&mut self, actx: &mut AppContext, pos: [f64; 2]) -> Result<()> {
+        Ok(())
+    }
+
+    fn mouse_button_pressed(&mut self, actx: &mut AppContext, button: MouseButton, pos: [f64; 2]) -> Result<()> {
+        Ok(())
+    }
+
+    fn mouse_button_released(&mut self, actx: &mut AppContext, button: MouseButton, pos: [f64; 2]) -> Result<()> {
         Ok(())
     }
 
@@ -85,12 +98,12 @@ where
     }
 
     /// A button on a gamepad was pressed
-    fn gamepad_button_pressed(&mut self, actx: &mut AppContext, dev: DeviceId, button: Button) -> Result<()> {
+    fn gamepad_button_pressed(&mut self, actx: &mut AppContext, dev: DeviceId, button: GamepadButton) -> Result<()> {
         Ok(())
     }
 
     /// A button on a gamepad was released
-    fn gamepad_button_released(&mut self, actx: &mut AppContext, dev: DeviceId, button: Button) -> Result<()> {
+    fn gamepad_button_released(&mut self, actx: &mut AppContext, dev: DeviceId, button: GamepadButton) -> Result<()> {
         Ok(())
     }
 

@@ -2,6 +2,7 @@ use crate::a2d::Graphics2D;
 use crate::anyhow::Result;
 use crate::futures::executor::block_on;
 use crate::Axis;
+use crate::MouseButton;
 use crate::gilrs;
 use crate::gilrs::Gilrs;
 use crate::winit::{
@@ -11,7 +12,7 @@ use crate::winit::{
 };
 use crate::AppContext;
 use crate::DeviceId;
-use crate::Button;
+use crate::GamepadButton;
 use crate::Game;
 use crate::Key;
 use crate::Options;
@@ -44,6 +45,8 @@ impl Window {
         let event_loop = self.event_loop;
         let window = self.window;
         let mut graphics = self.graphics;
+        let mut scale_factor: f64 = 1.0;
+        let mut mouse_pos: [f64; 2] = [0.0, 0.0];
 
         let mut game = {
             let mut actx = AppContext {
@@ -92,15 +95,15 @@ impl Window {
                     window.request_redraw();
                 }
                 Event::UserEvent(other) => match other {
-                    OtherEvent::Gilrs(gilrs::Event { id, event, .. }) => {
+                    OtherEvent::Gilrs(gilrs::Event { id, event, time: _time}) => {
                         let id: DeviceId = id.into();
                         match event {
                             gilrs::EventType::ButtonPressed(button, _) => {
-                                let button = Button::from_gilrs(button).unwrap();
+                                let button = GamepadButton::from_gilrs(button).unwrap();
                                 game.gamepad_button_pressed(&mut actx, id, button).unwrap();
                             }
                             gilrs::EventType::ButtonReleased(button, _) => {
-                                let button = Button::from_gilrs(button).unwrap();
+                                let button = GamepadButton::from_gilrs(button).unwrap();
                                 game.gamepad_button_released(&mut actx, id, button).unwrap();
                             }
                             gilrs::EventType::Connected => {
@@ -126,7 +129,7 @@ impl Window {
                         actx.exit();
                     }
                     WindowEvent::KeyboardInput {
-                        input, device_id, ..
+                        input, device_id: _, is_synthetic: _,
                     } => match input {
                         KeyboardInput {
                             state,
@@ -134,33 +137,52 @@ impl Window {
                             ..
                         } => {
                             if let Some(key) = Key::from_winit(*keycode) {
-                                let dev = (*device_id).into();
                                 match state {
                                     ElementState::Pressed => {
-                                        game.key_pressed(&mut actx, dev, key).unwrap();
+                                        game.key_pressed(&mut actx, key).unwrap();
                                     }
                                     ElementState::Released => {
-                                        game.key_released(&mut actx, dev, key).unwrap();
+                                        game.key_released(&mut actx, key).unwrap();
                                     }
                                 }
                             }
                         }
                         _ => {}
                     },
+                    WindowEvent::CursorMoved {
+                        device_id: _,
+                        position,
+                        ..
+                    } => {
+                        let position = position.to_logical(scale_factor);
+                        mouse_pos = [position.x, position.y];
+                        game.mouse_moved(&mut actx, mouse_pos).unwrap();
+                    }
+                    WindowEvent::MouseInput {
+                        device_id: _,
+                        state,
+                        button,
+                        ..
+                    } => {
+                        let button = MouseButton::from_winit(*button);
+                        match state {
+                            ElementState::Pressed => {
+                                game.mouse_button_pressed(&mut actx, button, mouse_pos).unwrap();
+                            }
+                            ElementState::Released => {
+                                game.mouse_button_released(&mut actx, button, mouse_pos).unwrap();
+                            }
+                        }
+                    }
                     WindowEvent::ReceivedCharacter(ch) => {
                         game.ch(&mut actx, *ch).unwrap();
                     }
                     WindowEvent::Resized(physical_size) => {
-                        let (width, height) = (physical_size.width, physical_size.height);
-                        actx.graphics.resized(*physical_size);
-                        actx.graphics.set_scale([width as f32, height as f32]);
-                        game.resize(&mut actx, width, height).unwrap();
+                        on_resize(&mut actx, &mut game, scale_factor, *physical_size).unwrap();
                     }
-                    WindowEvent::ScaleFactorChanged { new_inner_size, .. } => {
-                        let (width, height) = (new_inner_size.width, new_inner_size.height);
-                        actx.graphics.resized(**new_inner_size);
-                        actx.graphics.set_scale([width as f32, height as f32]);
-                        game.resize(&mut actx, width, height).unwrap();
+                    WindowEvent::ScaleFactorChanged { scale_factor: new_scale_factor, new_inner_size: physical_size } => {
+                        scale_factor = *new_scale_factor;
+                        on_resize(&mut actx, &mut game, scale_factor, **physical_size).unwrap();
                     }
                     _ => {}
                 },
@@ -168,6 +190,14 @@ impl Window {
             }
         });
     }
+}
+
+fn on_resize<G: Game>(actx: &mut AppContext, game: &mut G, scale_factor: f64, physical_size: crate::winit::dpi::PhysicalSize<u32>) -> Result<()> {
+    let logical_size = physical_size.to_logical(scale_factor);
+    let (width, height) = (logical_size.width, logical_size.height);
+    actx.graphics.resized(physical_size);
+    actx.graphics.set_scale([width as f32, height as f32]);
+    game.resize(actx, width, height)
 }
 
 fn spawn_gilrs_listener_thread(proxy: EventLoopProxy<OtherEvent>) {
