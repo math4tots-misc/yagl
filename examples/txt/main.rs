@@ -63,6 +63,11 @@ impl yagl::Game for Game {
         Ok(())
     }
 
+    fn scroll(&mut self, actx: &mut AppContext, pos: [f32; 2], delta: [f32; 2]) -> Result<()> {
+        println!("delta = {:?}", delta);
+        Ok(())
+    }
+
     fn gamepad_button_pressed(&mut self, actx: &mut AppContext, dev: DeviceId, button: GamepadButton) -> Result<()> {
         match button {
             GamepadButton::DPadLeft => {

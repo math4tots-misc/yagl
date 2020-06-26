@@ -76,19 +76,25 @@ where
         Ok(())
     }
 
-    fn mouse_moved(&mut self, actx: &mut AppContext, pos: [f64; 2]) -> Result<()> {
+    fn mouse_moved(&mut self, actx: &mut AppContext, pos: [f32; 2]) -> Result<()> {
         Ok(())
     }
 
-    fn mouse_button_pressed(&mut self, actx: &mut AppContext, button: MouseButton, pos: [f64; 2]) -> Result<()> {
+    fn mouse_button_pressed(&mut self, actx: &mut AppContext, pos: [f32; 2], button: MouseButton) -> Result<()> {
         Ok(())
     }
 
-    fn mouse_button_released(&mut self, actx: &mut AppContext, button: MouseButton, pos: [f64; 2]) -> Result<()> {
+    fn mouse_button_released(&mut self, actx: &mut AppContext, pos: [f32; 2], button: MouseButton) -> Result<()> {
         Ok(())
     }
 
-    /// A gamepad was connected
+    /// Fired when a scroll event is received.
+    /// This could be triggered by a mouse wheel or trackpad.
+    /// The delta of [horizontal, vertical] is provided.
+    fn scroll(&mut self, actx: &mut AppContext, pos: [f32; 2], delta: [f32; 2]) -> Result<()> {
+        Ok(())
+    }
+
     fn gamepad_connected(&mut self, actx: &mut AppContext, dev: DeviceId) -> Result<()> {
         Ok(())
     }
@@ -123,12 +129,27 @@ pub struct Options {
     ///
     /// Enabled by default, but may be disabled if doing so is not desired
     pub enable_gamepad: bool,
+
+    /// Scrolling can be done with either a wheel on a mouse, or
+    /// with e.g. a trackpad.
+    ///
+    /// The wheel on a mouse usually comes in more discreet intervals,
+    /// and when available, trackpad information is provided in logical
+    /// pixels.
+    ///
+    /// The option here allows you to customize the value passed to
+    /// `Game::scroll` by providing a factor to multiply with if the
+    /// input source works with line deltas instead of pixel deltas.
+    ///
+    /// By default, set to 1.0
+    pub scroll_pixel_factor: f32,
 }
 
 impl Default for Options {
     fn default() -> Self {
         Self {
             enable_gamepad: true,
+            scroll_pixel_factor: 1.0,
         }
     }
 }

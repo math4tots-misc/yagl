@@ -6,7 +6,7 @@ use crate::MouseButton;
 use crate::gilrs;
 use crate::gilrs::Gilrs;
 use crate::winit::{
-    event::{ElementState, Event, KeyboardInput, WindowEvent},
+    event::{ElementState, Event, KeyboardInput, WindowEvent, MouseScrollDelta, TouchPhase},
     event_loop::{ControlFlow, EventLoop, EventLoopProxy},
     window::WindowBuilder,
 };
@@ -46,9 +46,9 @@ impl Window {
         let window = self.window;
         let mut graphics = self.graphics;
         let mut scale_factor: f64 = 1.0;
-        let mut mouse_pos: [f64; 2] = [0.0, 0.0];
+        let mut mouse_pos: [f32; 2] = [0.0, 0.0];
 
-        let mut game = {
+        let (mut game, options) = {
             let mut actx = AppContext {
                 graphics: &mut graphics,
                 control_flow: &mut ControlFlow::default(),
@@ -66,19 +66,20 @@ impl Window {
                 );
             }
 
-            {
-                let Options {
-                    enable_gamepad,
-                } = game.options();
+            let options = game.options();
 
-                if enable_gamepad {
-                    let proxy = event_loop.create_proxy();
-                    spawn_gilrs_listener_thread(proxy);
-                }
+            if options.enable_gamepad {
+                let proxy = event_loop.create_proxy();
+                spawn_gilrs_listener_thread(proxy);
             }
 
-            game
+            (game, options)
         };
+
+        let Options {
+            enable_gamepad: _,
+            scroll_pixel_factor,
+        } = options;
 
         event_loop.run(move |event, _, control_flow| {
             let mut actx = AppContext {
@@ -158,6 +159,24 @@ impl Window {
                         mouse_pos = [position.x, position.y];
                         game.mouse_moved(&mut actx, mouse_pos).unwrap();
                     }
+                    WindowEvent::MouseWheel {
+                        device_id: _,
+                        delta,
+                        phase,
+                        ..
+                    } => {
+                        match phase {
+                            TouchPhase::Moved => {
+                                let dxdy = match delta {
+                                    MouseScrollDelta::LineDelta(dx, dy) => [*dx, *dy],
+                                    MouseScrollDelta::PixelDelta(crate::winit::dpi::LogicalPosition { x, y }) =>
+                                        [*x as f32 * scroll_pixel_factor, *y as f32 * scroll_pixel_factor],
+                                };
+                                game.scroll(&mut actx, mouse_pos, dxdy).unwrap();
+                            }
+                            _ => {}
+                        }
+                    }
                     WindowEvent::MouseInput {
                         device_id: _,
                         state,
@@ -167,10 +186,10 @@ impl Window {
                         let button = MouseButton::from_winit(*button);
                         match state {
                             ElementState::Pressed => {
-                                game.mouse_button_pressed(&mut actx, button, mouse_pos).unwrap();
+                                game.mouse_button_pressed(&mut actx, mouse_pos, button).unwrap();
                             }
                             ElementState::Released => {
-                                game.mouse_button_released(&mut actx, button, mouse_pos).unwrap();
+                                game.mouse_button_released(&mut actx, mouse_pos, button).unwrap();
                             }
                         }
                     }
