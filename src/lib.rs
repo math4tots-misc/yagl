@@ -16,6 +16,8 @@ pub use game::Game;
 pub use game::Options;
 pub use input::DeviceId;
 pub use input::Key;
+pub use input::Button;
+pub use input::Axis;
 pub use window::run;
 pub use window::Window;
 

@@ -8,6 +8,7 @@ use yagl::AppContext;
 use yagl::DeviceId;
 use yagl::Instance;
 use yagl::Key;
+use yagl::Button;
 use yagl::RenderContext;
 use yagl::SpriteBatch;
 use yagl::TextGrid;
@@ -56,6 +57,25 @@ impl yagl::Game for Game {
             }
             Key::Return => {
                 self.text.enter(actx)?;
+            }
+            _ => {}
+        }
+        Ok(())
+    }
+
+    fn gamepad_button_pressed(&mut self, actx: &mut AppContext, dev: DeviceId, button: Button) -> Result<()> {
+        match button {
+            Button::DPadLeft => {
+                self.text.move_left(actx)?;
+            }
+            Button::DPadRight => {
+                self.text.move_right(actx)?;
+            }
+            Button::DPadDown => {
+                self.text.move_down(actx)?;
+            }
+            Button::DPadUp => {
+                self.text.move_up(actx)?;
             }
             _ => {}
         }

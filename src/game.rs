@@ -3,6 +3,8 @@ use crate::AppContext;
 use crate::DeviceId;
 use crate::Key;
 use crate::RenderContext;
+use crate::Button;
+use crate::Axis;
 
 /// Trait describing the behavior of a game.
 ///
@@ -70,6 +72,30 @@ where
     /// so that even if the key is not recognized, the raw scancode can be
     /// passed to the client to process.
     fn key_released(&mut self, actx: &mut AppContext, dev: DeviceId, key: Key) -> Result<()> {
+        Ok(())
+    }
+
+    /// A gamepad was connected
+    fn gamepad_connected(&mut self, actx: &mut AppContext, dev: DeviceId) -> Result<()> {
+        Ok(())
+    }
+
+    fn gamepad_disconnected(&mut self, actx: &mut AppContext, dev: DeviceId) -> Result<()> {
+        Ok(())
+    }
+
+    /// A button on a gamepad was pressed
+    fn gamepad_button_pressed(&mut self, actx: &mut AppContext, dev: DeviceId, button: Button) -> Result<()> {
+        Ok(())
+    }
+
+    /// A button on a gamepad was released
+    fn gamepad_button_released(&mut self, actx: &mut AppContext, dev: DeviceId, button: Button) -> Result<()> {
+        Ok(())
+    }
+
+    /// An axis on a gamepad was changed
+    fn gamepad_axis_changed(&mut self, actx: &mut AppContext, dev: DeviceId, axis: Axis, value: f32) -> Result<()> {
         Ok(())
     }
 }

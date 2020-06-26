@@ -1,6 +1,7 @@
 use crate::a2d::Graphics2D;
 use crate::anyhow::Result;
 use crate::futures::executor::block_on;
+use crate::Axis;
 use crate::gilrs;
 use crate::gilrs::Gilrs;
 use crate::winit::{
@@ -10,6 +11,7 @@ use crate::winit::{
 };
 use crate::AppContext;
 use crate::DeviceId;
+use crate::Button;
 use crate::Game;
 use crate::Key;
 use crate::Options;
@@ -90,8 +92,30 @@ impl Window {
                     window.request_redraw();
                 }
                 Event::UserEvent(other) => match other {
-                    OtherEvent::Gilrs(event) => {
-                        println!("gilrs event -> {:?}", event);
+                    OtherEvent::Gilrs(gilrs::Event { id, event, .. }) => {
+                        let id: DeviceId = id.into();
+                        match event {
+                            gilrs::EventType::ButtonPressed(button, _) => {
+                                let button = Button::from_gilrs(button).unwrap();
+                                game.gamepad_button_pressed(&mut actx, id, button).unwrap();
+                            }
+                            gilrs::EventType::ButtonReleased(button, _) => {
+                                let button = Button::from_gilrs(button).unwrap();
+                                game.gamepad_button_released(&mut actx, id, button).unwrap();
+                            }
+                            gilrs::EventType::Connected => {
+                                game.gamepad_connected(&mut actx, id).unwrap();
+                            }
+                            gilrs::EventType::Disconnected => {
+                                game.gamepad_connected(&mut actx, id).unwrap();
+                            }
+                            gilrs::EventType::AxisChanged(axis, value, _) => {
+                                let axis = Axis::from_gilrs(axis);
+                                game.gamepad_axis_changed(&mut actx, id, axis, value).unwrap();
+                            }
+                            gilrs::EventType::Dropped |
+                            gilrs::EventType::ButtonChanged(..) | gilrs::EventType::ButtonRepeated(..) => {}
+                        }
                     }
                 }
                 Event::WindowEvent {
@@ -147,8 +171,8 @@ impl Window {
 }
 
 fn spawn_gilrs_listener_thread(proxy: EventLoopProxy<OtherEvent>) {
-    let mut gilrs = Gilrs::new().unwrap();
     std::thread::spawn(move || {
+        let mut gilrs = Gilrs::new().unwrap();
         loop {
             while let Some(event) = gilrs.next_event() {
                 proxy.send_event(OtherEvent::Gilrs(event)).unwrap();
