@@ -14,11 +14,11 @@ pub use context::AppContext;
 pub use context::RenderContext;
 pub use game::Game;
 pub use game::Options;
-pub use input::DeviceId;
-pub use input::Key;
-pub use input::GamepadButton;
-pub use input::MouseButton;
 pub use input::Axis;
+pub use input::DeviceId;
+pub use input::GamepadButton;
+pub use input::Key;
+pub use input::MouseButton;
 pub use window::run;
 pub use window::Window;
 

@@ -6,9 +6,9 @@ extern crate yagl;
 use anyhow::Result;
 use yagl::AppContext;
 use yagl::DeviceId;
+use yagl::GamepadButton;
 use yagl::Instance;
 use yagl::Key;
-use yagl::GamepadButton;
 use yagl::RenderContext;
 use yagl::SpriteBatch;
 use yagl::TextGrid;
@@ -68,7 +68,12 @@ impl yagl::Game for Game {
         Ok(())
     }
 
-    fn gamepad_button_pressed(&mut self, actx: &mut AppContext, dev: DeviceId, button: GamepadButton) -> Result<()> {
+    fn gamepad_button_pressed(
+        &mut self,
+        actx: &mut AppContext,
+        dev: DeviceId,
+        button: GamepadButton,
+    ) -> Result<()> {
         match button {
             GamepadButton::DPadLeft => {
                 self.text.move_left(actx)?;

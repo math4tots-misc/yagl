@@ -1,11 +1,11 @@
 use crate::anyhow::Result;
 use crate::AppContext;
-use crate::DeviceId;
-use crate::Key;
-use crate::RenderContext;
-use crate::GamepadButton;
-use crate::MouseButton;
 use crate::Axis;
+use crate::DeviceId;
+use crate::GamepadButton;
+use crate::Key;
+use crate::MouseButton;
+use crate::RenderContext;
 
 /// Trait describing the behavior of a game.
 ///
@@ -80,11 +80,21 @@ where
         Ok(())
     }
 
-    fn mouse_button_pressed(&mut self, actx: &mut AppContext, pos: [f32; 2], button: MouseButton) -> Result<()> {
+    fn mouse_button_pressed(
+        &mut self,
+        actx: &mut AppContext,
+        pos: [f32; 2],
+        button: MouseButton,
+    ) -> Result<()> {
         Ok(())
     }
 
-    fn mouse_button_released(&mut self, actx: &mut AppContext, pos: [f32; 2], button: MouseButton) -> Result<()> {
+    fn mouse_button_released(
+        &mut self,
+        actx: &mut AppContext,
+        pos: [f32; 2],
+        button: MouseButton,
+    ) -> Result<()> {
         Ok(())
     }
 
@@ -104,17 +114,33 @@ where
     }
 
     /// A button on a gamepad was pressed
-    fn gamepad_button_pressed(&mut self, actx: &mut AppContext, dev: DeviceId, button: GamepadButton) -> Result<()> {
+    fn gamepad_button_pressed(
+        &mut self,
+        actx: &mut AppContext,
+        dev: DeviceId,
+        button: GamepadButton,
+    ) -> Result<()> {
         Ok(())
     }
 
     /// A button on a gamepad was released
-    fn gamepad_button_released(&mut self, actx: &mut AppContext, dev: DeviceId, button: GamepadButton) -> Result<()> {
+    fn gamepad_button_released(
+        &mut self,
+        actx: &mut AppContext,
+        dev: DeviceId,
+        button: GamepadButton,
+    ) -> Result<()> {
         Ok(())
     }
 
     /// An axis on a gamepad was changed
-    fn gamepad_axis_changed(&mut self, actx: &mut AppContext, dev: DeviceId, axis: Axis, value: f32) -> Result<()> {
+    fn gamepad_axis_changed(
+        &mut self,
+        actx: &mut AppContext,
+        dev: DeviceId,
+        axis: Axis,
+        value: f32,
+    ) -> Result<()> {
         Ok(())
     }
 }

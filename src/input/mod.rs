@@ -1,14 +1,14 @@
-use crate::winit::event::DeviceId as WinitDeviceId;
 use crate::gilrs::GamepadId;
+use crate::winit::event::DeviceId as WinitDeviceId;
 
 mod axis;
-mod key;
 mod gbtn;
+mod key;
 mod mbtn;
 
 pub use axis::Axis;
-pub use key::Key;
 pub use gbtn::GamepadButton;
+pub use key::Key;
 pub use mbtn::MouseButton;
 
 /// An ID that identifies an external device

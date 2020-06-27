@@ -1,20 +1,20 @@
 use crate::a2d::Graphics2D;
 use crate::anyhow::Result;
 use crate::futures::executor::block_on;
-use crate::Axis;
-use crate::MouseButton;
 use crate::gilrs;
 use crate::gilrs::Gilrs;
 use crate::winit::{
-    event::{ElementState, Event, KeyboardInput, WindowEvent, MouseScrollDelta, TouchPhase},
+    event::{ElementState, Event, KeyboardInput, MouseScrollDelta, TouchPhase, WindowEvent},
     event_loop::{ControlFlow, EventLoop, EventLoopProxy},
     window::WindowBuilder,
 };
 use crate::AppContext;
+use crate::Axis;
 use crate::DeviceId;
-use crate::GamepadButton;
 use crate::Game;
+use crate::GamepadButton;
 use crate::Key;
+use crate::MouseButton;
 use crate::Options;
 use crate::RenderContext;
 
@@ -96,7 +96,11 @@ impl Window {
                     window.request_redraw();
                 }
                 Event::UserEvent(other) => match other {
-                    OtherEvent::Gilrs(gilrs::Event { id, event, time: _time}) => {
+                    OtherEvent::Gilrs(gilrs::Event {
+                        id,
+                        event,
+                        time: _time,
+                    }) => {
                         let id: DeviceId = id.into();
                         match event {
                             gilrs::EventType::ButtonPressed(button, _) => {
@@ -115,13 +119,15 @@ impl Window {
                             }
                             gilrs::EventType::AxisChanged(axis, value, _) => {
                                 let axis = Axis::from_gilrs(axis);
-                                game.gamepad_axis_changed(&mut actx, id, axis, value).unwrap();
+                                game.gamepad_axis_changed(&mut actx, id, axis, value)
+                                    .unwrap();
                             }
-                            gilrs::EventType::Dropped |
-                            gilrs::EventType::ButtonChanged(..) | gilrs::EventType::ButtonRepeated(..) => {}
+                            gilrs::EventType::Dropped
+                            | gilrs::EventType::ButtonChanged(..)
+                            | gilrs::EventType::ButtonRepeated(..) => {}
                         }
                     }
-                }
+                },
                 Event::WindowEvent {
                     ref event,
                     window_id,
@@ -130,7 +136,9 @@ impl Window {
                         actx.exit();
                     }
                     WindowEvent::KeyboardInput {
-                        input, device_id: _, is_synthetic: _,
+                        input,
+                        device_id: _,
+                        is_synthetic: _,
                     } => match input {
                         KeyboardInput {
                             state,
@@ -164,19 +172,21 @@ impl Window {
                         delta,
                         phase,
                         ..
-                    } => {
-                        match phase {
-                            TouchPhase::Moved => {
-                                let dxdy = match delta {
-                                    MouseScrollDelta::LineDelta(dx, dy) => [*dx, *dy],
-                                    MouseScrollDelta::PixelDelta(crate::winit::dpi::LogicalPosition { x, y }) =>
-                                        [*x as f32 * scroll_pixel_factor, *y as f32 * scroll_pixel_factor],
-                                };
-                                game.scroll(&mut actx, mouse_pos, dxdy).unwrap();
-                            }
-                            _ => {}
+                    } => match phase {
+                        TouchPhase::Moved => {
+                            let dxdy = match delta {
+                                MouseScrollDelta::LineDelta(dx, dy) => [*dx, *dy],
+                                MouseScrollDelta::PixelDelta(
+                                    crate::winit::dpi::LogicalPosition { x, y },
+                                ) => [
+                                    *x as f32 * scroll_pixel_factor,
+                                    *y as f32 * scroll_pixel_factor,
+                                ],
+                            };
+                            game.scroll(&mut actx, mouse_pos, dxdy).unwrap();
                         }
-                    }
+                        _ => {}
+                    },
                     WindowEvent::MouseInput {
                         device_id: _,
                         state,
@@ -186,10 +196,12 @@ impl Window {
                         let button = MouseButton::from_winit(*button);
                         match state {
                             ElementState::Pressed => {
-                                game.mouse_button_pressed(&mut actx, mouse_pos, button).unwrap();
+                                game.mouse_button_pressed(&mut actx, mouse_pos, button)
+                                    .unwrap();
                             }
                             ElementState::Released => {
-                                game.mouse_button_released(&mut actx, mouse_pos, button).unwrap();
+                                game.mouse_button_released(&mut actx, mouse_pos, button)
+                                    .unwrap();
                             }
                         }
                     }
@@ -199,7 +211,10 @@ impl Window {
                     WindowEvent::Resized(physical_size) => {
                         on_resize(&mut actx, &mut game, scale_factor, *physical_size).unwrap();
                     }
-                    WindowEvent::ScaleFactorChanged { scale_factor: new_scale_factor, new_inner_size: physical_size } => {
+                    WindowEvent::ScaleFactorChanged {
+                        scale_factor: new_scale_factor,
+                        new_inner_size: physical_size,
+                    } => {
                         scale_factor = *new_scale_factor;
                         on_resize(&mut actx, &mut game, scale_factor, **physical_size).unwrap();
                     }
@@ -211,7 +226,12 @@ impl Window {
     }
 }
 
-fn on_resize<G: Game>(actx: &mut AppContext, game: &mut G, scale_factor: f64, physical_size: crate::winit::dpi::PhysicalSize<u32>) -> Result<()> {
+fn on_resize<G: Game>(
+    actx: &mut AppContext,
+    game: &mut G,
+    scale_factor: f64,
+    physical_size: crate::winit::dpi::PhysicalSize<u32>,
+) -> Result<()> {
     let logical_size = physical_size.to_logical(scale_factor);
     let (width, height) = (logical_size.width, logical_size.height);
     actx.graphics.resized(physical_size);
