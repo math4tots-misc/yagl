@@ -43,7 +43,7 @@ where
     }
 
     /// Called on character input
-    fn ch(&mut self, actx: &mut AppContext, ch: char) -> Result<()> {
+    fn char(&mut self, actx: &mut AppContext, ch: char) -> Result<()> {
         Ok(())
     }
 

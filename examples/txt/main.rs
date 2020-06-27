@@ -28,7 +28,7 @@ impl yagl::Game for Game {
         Ok(())
     }
 
-    fn ch(&mut self, actx: &mut AppContext, ch: char) -> Result<()> {
+    fn char(&mut self, actx: &mut AppContext, ch: char) -> Result<()> {
         if ch >= ' ' && (ch as u32) < 127 {
             self.text.write_ch(actx, ch)?;
         }

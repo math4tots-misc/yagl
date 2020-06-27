@@ -206,7 +206,7 @@ impl Window {
                         }
                     }
                     WindowEvent::ReceivedCharacter(ch) => {
-                        game.ch(&mut actx, *ch).unwrap();
+                        game.char(&mut actx, *ch).unwrap();
                     }
                     WindowEvent::Resized(physical_size) => {
                         on_resize(&mut actx, &mut game, scale_factor, *physical_size).unwrap();
